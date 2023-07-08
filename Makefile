@@ -1,7 +1,7 @@
 include /home/ayan/code/common_flags.mk
 
 list_dir: list_dir.c
-	$(CC) $(CFLAGS) list_dir.c -o list_dir
+	$(CC) $(CFLAGS) list_dir.c -o list_dir -lm
 
 clean: 
 	rm list_dir
