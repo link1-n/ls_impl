@@ -10,6 +10,14 @@
 #include <math.h>
 
 #define MAX_FILES 100
+#define ANSI_BOLD          "\x1b[1m"
+#define ANSI_COLOR_MAGENTA "\x1b[35m"
+#define ANSI_COLOR_CYAN    "\x1b[36m"
+#define ANSI_COLOR_BLUE    "\x1b[34m"
+#define ANSI_COLOR_GREEN   "\x1b[32m"
+#define ANSI_COLOR_RESET   "\x1b[0m"
+#define ANSI_BOLD_RESET    "\x1b[21m"
+
 
 struct file_data {
 	char* file_name;
@@ -18,6 +26,7 @@ struct file_data {
 	unsigned int group_id;
 	long long file_size;
 	time_t mod_time;
+	mode_t type;
 
 	char* user_name;
 	char* group_name;
@@ -62,6 +71,22 @@ void get_datetime(struct file_data* obj) {
 	obj->mod_time_str = strdup(res);
 }
 
+void print_name(const char* file_name, mode_t file_type) {
+	if(S_ISDIR(file_type)) {
+		printf(ANSI_COLOR_BLUE ANSI_BOLD "%s\n" ANSI_BOLD_RESET \
+				ANSI_COLOR_RESET
+				, file_name);
+	}
+	else if(file_type & S_IXUSR) {
+		printf(ANSI_COLOR_GREEN ANSI_BOLD "%s\n" ANSI_BOLD_RESET \
+				ANSI_COLOR_RESET
+				, file_name);
+	}
+	else {
+		printf("%s\n", file_name);
+	}
+}
+
 void print_info(const struct file_data* obj, int max_link_len,
 		int max_user_name_len,
 		int max_group_name_len,
@@ -72,7 +97,8 @@ void print_info(const struct file_data* obj, int max_link_len,
 	printf("%*s ", max_group_name_len, obj->group_name);
 	printf("%*lld ", max_size_len, obj->file_size);
 	printf("%-18s ", obj->mod_time_str);
-	printf("%s\n", obj->file_name);
+	//printf("%s\n", obj->file_name);
+	print_name(obj->file_name, obj->type);
 }
 
 void fill_data(struct file_data* obj, struct stat stat_obj
@@ -83,6 +109,7 @@ void fill_data(struct file_data* obj, struct stat stat_obj
 	obj->group_id = stat_obj.st_gid;
 	obj->file_size = stat_obj.st_size;
 	obj->mod_time = stat_obj.st_mtime;
+	obj->type = stat_obj.st_mode;
 
 	get_user_name(obj);
 	get_group_name(obj);
@@ -147,7 +174,7 @@ void show(const char* dir_name, int list_all) {
 }
 
 //int main(int argc, char* argv[]) {
-int main(void){
+int main(void) {
 	show(".", 1);
 
 	return 1;
