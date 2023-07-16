@@ -191,9 +191,6 @@ void show(const char* dir_name, bool list_all, bool sort_time) {
 int main(int argc, char* argv[]) {
 	bool show_all = false;
 	bool sort_time = false;
-	for (int i = 0; i < argc; i++) {
-		printf("%s %d\n", argv[i], i);
-	}
 	if (argc > 1) {
 		if (strcmp(argv[1], "-a") == 0) {
 			show_all = true;
