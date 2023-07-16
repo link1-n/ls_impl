@@ -8,6 +8,7 @@
 #include <time.h>
 #include <string.h>
 #include <math.h>
+#include <stdbool.h>
 
 #define MAX_FILES 100
 #define ANSI_BOLD          "\x1b[1m"
@@ -39,6 +40,13 @@ int cmp(const void* a, const void* b) {
 
 	//return strcasecmp(file_a->file_name, file_b->file_name);
 	return strcmp(file_a->file_name, file_b->file_name);
+}
+
+int cmp_modtime(const void* a, const void* b) {
+	const struct file_data* file_a = *(struct file_data**)a; 
+	const struct file_data* file_b = *(struct file_data**)b; 
+
+	return file_a->mod_time > file_b->mod_time;
 }
 
 void get_user_name(struct file_data* obj) {
@@ -116,7 +124,7 @@ void fill_data(struct file_data* obj, struct stat stat_obj
 	get_datetime(obj);
 }
 
-void show(const char* dir_name, int list_all) {
+void show(const char* dir_name, bool list_all, bool sort_time) {
 	struct dirent *d;
 	DIR *dir = opendir(dir_name);
 
@@ -165,7 +173,14 @@ void show(const char* dir_name, int list_all) {
 		file_list[file_itr++] = data_obj;
 	}
 
-	qsort(file_list, (size_t)file_itr, sizeof(struct file_data*), cmp);
+	if (sort_time) {
+		qsort(file_list, (size_t)file_itr, sizeof(struct file_data*),
+				cmp_modtime);
+	}
+	else {
+		qsort(file_list, (size_t)file_itr, sizeof(struct file_data*),
+				cmp);
+	}
 
 	for (size_t i = 0; i < (size_t)file_itr; i++) {
 		print_info(file_list[i], max_link_len, max_user_name_len,
@@ -173,9 +188,27 @@ void show(const char* dir_name, int list_all) {
 	}
 }
 
-//int main(int argc, char* argv[]) {
-int main(void) {
-	show(".", 1);
+int main(int argc, char* argv[]) {
+	bool show_all = false;
+	bool sort_time = false;
+	for (int i = 0; i < argc; i++) {
+		printf("%s %d\n", argv[i], i);
+	}
+	if (argc > 1) {
+		if (strcmp(argv[1], "-a") == 0) {
+			show_all = true;
+		}
+		if (strcmp(argv[1], "-tr") == 0) {
+			sort_time = true;
+		}
+	}
+	if (argc > 2) {
+		if (strcmp(argv[2], "-tr") == 0) {
+			sort_time = true;
+		}
+	}
+		
+	show(".", show_all, sort_time);
 
 	return 1;
 }
